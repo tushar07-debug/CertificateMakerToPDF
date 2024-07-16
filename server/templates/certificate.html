@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        /* Add your custom styles here */
+        /* Ensure custom styles do not conflict with Bootstrap */
+    </style>
+</head>
+<body>
+    <form method="post" action="/savedata" enctype="multipart/form-data">
+                
+        <div class="container certificate">
+            <div id="gg" class="mt-3">
+                <label for="photo">Photo</label>
+                <div class="custom-file">
+                    <input type="file" id="photo" name="photo" accept="image/*" onchange="previewImage(event)" class="custom-file-input">
+                    <label class="custom-file-label" for="photo">Choose file</label>
+                </div>
+                <img id="imagePreview" src="#" alt="Preview" class="mt-2 img-thumbnail" style="display: none; max-width: 200px;">
+            </div>
+            <div class="form-group">
+                <label for="Sn">Serial Number</label>
+                <input type="number" id="Sn" name="Sn" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="fname">Father's Name</label>
+                <input type="text" id="fname" name="fname" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="mname">Mother's Name</label>
+                <input type="text" id="mname" name="mname" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" name="dob" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="rollno">Roll Number</label>
+                <input type="text" id="rollno" name="rollno" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="erollno">Enrollment Number</label>
+                <input type="text" id="erollno" name="erollno" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="Session">Session</label>
+                <input type="text" id="Session" name="Session" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="curriculum">Curriculum</label>
+                <input type="text" id="curriculum" name="curriculum" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="performance">Performance</label>
+                <input type="text" id="performance" name="performance" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="award">Award</label>
+                <input type="text" id="award" name="award" class="form-control">
+            </div>
+            <div id="result" class="mt-3">
+                <label>Results</label>
+                <table id="result-table" class="table">
+                    <thead>
+                        <tr>
+                            <th>&nbsp;S.no</th>
+                            <th>Subject</th>
+                            <th>Theory</th>
+                            <th>Practical</th>
+                            <th>Obtained Marks</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="serial-number">1</span></td>
+                            <td><input type="text" name="subject[]" class="form-control"></td>
+                            <td><input type="number" name="theory[]" class="form-control theory"></td>
+                            <td><input type="number" name="practical[]" class="form-control practical"></td>
+                            <td><input type="number" name="obtained[]" class="form-control obtained" readonly></td>
+                            <td><button type="button" class="btn btn-danger remove-row">Remove</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="button" id="add-row" class="btn btn-success">Add Row</button>
+                <div id="error-message" class="text-danger mt-2" style="display: none;">Total marks in theory cannot exceed 30 and practical cannot exceed 70!</div>
+            </div>
+            <div class="form-group">
+                <label for="Grade">Grade</label>
+                <input type="text" id="Grade" name="Grade" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label for="IssueDay">Issue Day</label>
+                <input type="number" id="IssueDay" name="IssueDay" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="IssueYear">Issue Year</label>
+                <input type="text" id="IssueYear" name="IssueYear" class="form-control">
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary">submit</button>
+        </div>
+    </form>
+    <script>
+        
+        
+        document.getElementById('add-row').addEventListener('click', function() {
+            var tbody = document.querySelector('#result-table tbody');
+            var rowCount = tbody.rows.length;
+            if (rowCount < 5) {
+                var row = tbody.insertRow();
+                var serialNumber = rowCount + 1;
+                row.innerHTML = `
+                    <td><span class="serial-number">${serialNumber}</span></td>
+                    <td><input type="text" name="subject[]" class="form-control"></td>
+                    <td><input type="number" name="theory[]" class="form-control theory"></td>
+                    <td><input type="number" name="practical[]" class="form-control practical"></td>
+                    <td><input type="number" name="obtained[]" class="form-control obtained" readonly></td>
+                    <td><button type="button" class="btn btn-danger remove-row">Remove</button></td>
+                `;
+                updateSerialNumbers();
+            } else {
+                alert('Maximum 5 rows allowed.');
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-row')) {
+                e.target.closest('tr').remove();
+                updateSerialNumbers();
+            }
+            calculatePercentage();
+            calculateGrade();
+        });
+
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('theory') || e.target.classList.contains('practical')) {
+                var row = e.target.closest('tr');
+                var theory = parseInt(row.querySelector('.theory').value) || 0;
+                var practical = parseInt(row.querySelector('.practical').value) || 0;
+                if (theory > 30 || practical > 70) {
+                    document.getElementById('error-message').style.display = 'block';
+                    row.querySelector('.theory').value = '';
+                    row.querySelector('.practical').value = '';
+                    row.querySelector('.obtained').value = '';
+                } else {
+                    document.getElementById('error-message').style.display = 'none';
+                    row.querySelector('.obtained').value = theory + practical;
+                }
+            }
+            calculatePercentage();
+            calculateGrade();
+        });
+
+        function updateSerialNumbers() {
+            var serialNumbers = document.querySelectorAll('.serial-number');
+            serialNumbers.forEach(function(serialNumber, index) {
+                serialNumber.textContent = index + 1;
+            });
+        }
+
+        function calculatePercentage() {
+            var obtainedMarksInputs = document.querySelectorAll('.obtained');
+            var totalObtained = 0;
+            var rowCount = 0;
+            obtainedMarksInputs.forEach(function(input) {
+                totalObtained += parseInt(input.value) || 0;
+                rowCount++;
+            });
+            var totalMarks = rowCount * 100;
+            var percentage = (totalObtained / totalMarks) * 100;
+            document.getElementById('Grade').value = percentage.toFixed(2) + '%';
+        }
+
+        function calculateGrade() {
+            var percentage = parseFloat(document.getElementById('Grade').value);
+            var grade = '';
+            if (percentage >= 85) {
+                grade = 'A';
+            } else if (percentage >= 75 && percentage <= 84) {
+                grade = 'B';
+            } else if (percentage >= 65 && percentage <= 74) {
+                grade = 'C';
+            } else {
+                grade = 'D';
+            }
+            document.getElementById('Grade').value = grade;
+        }
+        function previewImage(event) {
+            var input = event.target;
+            var reader = new FileReader();
+            reader.onload = function(){
+                var img = document.getElementById('imagePreview');
+                img.src = reader.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
